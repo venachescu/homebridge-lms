@@ -93,20 +93,16 @@ export class SlimServer {
   }
 
   async request(...args: string[]) {
-    return new Promise<string[]>((resolve, reject) => {
+    return new Promise<string[]>((resolve) => {
       this
         .connect()
         .then((client) => {
           client.on('data', (data: Buffer) => {
             const response = decodeMessage(data);
-            console.log('Receving message:');
-            console.log(response);
             resolve(response);
             client.end();
           });
           const bytes = encodeMessage(...args);
-          console.log('Sending message:');
-          console.log(args.join(' '));
           client.write(bytes);
         });
     });

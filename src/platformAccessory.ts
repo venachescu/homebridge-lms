@@ -3,6 +3,7 @@ import { Service, PlatformAccessory, CharacteristicValue } from 'homebridge';
 import { LmsHomebridgePlatform } from './platform';
 import { SlimServer, discoverSlimServer } from './lms';
 
+
 /**
  * Platform Accessory
  * An instance of this class is created for each accessory your platform registers
@@ -115,7 +116,7 @@ export class LmsPlatformAccessory {
   /**
    */
   async setVolume(value: CharacteristicValue) {
-    this.state.Volume = value as number;
+    this.state.Volume = Math.max(value as number, 0);
     const client = new SlimServer(await discoverSlimServer());
     const volume = await client.query(this.id, 'mixer', 'volume', `${this.state.Volume}`);
     this.platform.log.debug('Set Characteristic Brightness -> ', volume);
