@@ -39,8 +39,8 @@ export class LmsPlatformAccessory {
       .setCharacteristic(this.platform.Characteristic.SerialNumber, accessory.context.device.player_id);
 
     // this.service = this.accessory.getService(this.platform.Service.Speaker) || this.accessory.addService(this.platform.Service.Speaker);
-    // this.service = this.accessory.getService(this.platform.Service.Lightbulb) || this.accessory.addService(this.platform.Service.Lightbulb);
-    this.service = this.accessory.getService(this.platform.Service.Switch) || this.accessory.addService(this.platform.Service.Switch);
+    this.service = this.accessory.getService(this.platform.Service.Lightbulb) || this.accessory.addService(this.platform.Service.Lightbulb);
+    // this.service = this.accessory.getService(this.platform.Service.Switch) || this.accessory.addService(this.platform.Service.Switch);
 
     this.service.setCharacteristic(this.platform.Characteristic.Name, accessory.context.device.player_name);
 
@@ -48,9 +48,9 @@ export class LmsPlatformAccessory {
       .onSet(this.setOn.bind(this))
       .onGet(this.getOn.bind(this));
 
-    // this.service.getCharacteristic(this.platform.Characteristic.Brightness)
-    //   .onSet(this.setBrightness.bind(this))
-    //   .onGet(this.getBrightness.bind(this));
+    this.service.getCharacteristic(this.platform.Characteristic.Brightness)
+      .onSet(this.setBrightness.bind(this))
+      .onGet(this.getBrightness.bind(this));
 
     // this.service.getCharacteristic(this.platform.Characteristic.Volume)
     //   .onSet(this.setVolume.bind(this))
@@ -131,6 +131,10 @@ export class LmsPlatformAccessory {
     this.state.Brightness = Math.max(value as number, 0);
     const client = new SlimServer(await discoverSlimServer());
     const brightness = await client.query(this.id, 'mixer', 'volume', `${this.state.Brightness}`);
+    if (this.state.Brightness === 0) {
+      await client.query('power', '0');
+      this.state.On = false;
+    }
     this.platform.log.debug('Set Characteristic Brightness -> ', brightness);
   }
 
