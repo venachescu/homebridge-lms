@@ -39,8 +39,6 @@ export class LmsPlatformAccessory {
 
     this.service = this.accessory.getService(this.platform.Service.Speaker) || this.accessory.addService(this.platform.Service.Speaker);
 
-    // set the service name, this is what is displayed as the default name on the Home app
-    // in this example we are using the name we stored in the `accessory.context` in the `discoverDevices` method.
     this.service.setCharacteristic(this.platform.Characteristic.Name, accessory.context.device.exampleDisplayName);
 
     this.service.getCharacteristic(this.platform.Characteristic.On)
@@ -72,45 +70,31 @@ export class LmsPlatformAccessory {
   }
 
   /**
-   * Handle the "GET" requests from HomeKit
-   * These are sent when HomeKit wants to know the current state of the accessory, for example, checking if a Light bulb is on.
-   *
-   * GET requests should return as fast as possbile. A long delay here will result in
-   * HomeKit being unresponsive and a bad user experience in general.
-   *
-   * If your device takes time to respond you should update the status of your device
-   * asynchronously instead using the `updateCharacteristic` method instead.
-
    * @example
    * this.service.updateCharacteristic(this.platform.Characteristic.On, true)
    */
   async getOn(): Promise<CharacteristicValue> {
-    let isOn = this.state.On;
 
     const client = new SlimServer(await discoverSlimServer());
     const status = await client.query(this.id, 'status');
-    isOn = Boolean(Number(status.power));
+    this.state.On = Boolean(Number(status.power));
 
-    this.platform.log.debug('Get Characteristic On ->', isOn);
-
+    this.platform.log.debug('Get Characteristic On ->', this.state.On);
     // if you need to return an error to show the device as "Not Responding" in the Home app:
     // throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
-
-    return isOn;
+    return this.state.On;
   }
 
   /**
    */
   async getVolume(): Promise<CharacteristicValue> {
-    let volume = this.state.Volume;
 
     const client = new SlimServer(await discoverSlimServer());
     const status = await client.query(this.id, 'status');
-    volume = Number(status['mixer volume']);
+    this.state.Volume = Math.max(Number(status['mixer volume']), 0);
 
-    this.platform.log.debug('Get Characteristic Volume ->', volume);
-
-    return volume;
+    this.platform.log.debug('Get Characteristic Volume ->', this.state.Volume);
+    return this.state.Volume;
   }
 
   /**
