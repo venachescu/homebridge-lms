@@ -19,6 +19,7 @@ export class LmsPlatformAccessory {
   private state = {
     On: false,
     Volume: 100,
+    Brightness: 100,
     Mute: false,
   };
 
@@ -37,7 +38,8 @@ export class LmsPlatformAccessory {
       .setCharacteristic(this.platform.Characteristic.Model, 'Squeezebox')
       .setCharacteristic(this.platform.Characteristic.SerialNumber, accessory.context.device.player_id);
 
-    this.service = this.accessory.getService(this.platform.Service.Speaker) || this.accessory.addService(this.platform.Service.Speaker);
+    // this.service = this.accessory.getService(this.platform.Service.Speaker) || this.accessory.addService(this.platform.Service.Speaker);
+    this.service = this.accessory.getService(this.platform.Service.Lightbulb) || this.accessory.addService(this.platform.Service.Lightbulb);
 
     this.service.setCharacteristic(this.platform.Characteristic.Name, accessory.context.device.player_name);
 
@@ -45,13 +47,17 @@ export class LmsPlatformAccessory {
       .onSet(this.setOn.bind(this))
       .onGet(this.getOn.bind(this));
 
-    this.service.getCharacteristic(this.platform.Characteristic.Volume)
-      .onSet(this.setVolume.bind(this))
-      .onGet(this.getVolume.bind(this));
+    this.service.getCharacteristic(this.platform.Characteristic.Brightness)
+      .onSet(this.setBrightness.bind(this))
+      .onGet(this.getBrightness.bind(this));
 
-    this.service.getCharacteristic(this.platform.Characteristic.Mute)
-      .onSet(this.setMute.bind(this))
-      .onGet(this.getMute.bind(this));
+    // this.service.getCharacteristic(this.platform.Characteristic.Volume)
+    //   .onSet(this.setVolume.bind(this))
+    //   .onGet(this.getVolume.bind(this));
+
+    // this.service.getCharacteristic(this.platform.Characteristic.Mute)
+    //   .onSet(this.setMute.bind(this))
+    //   .onGet(this.getMute.bind(this));
   }
 
   /**
@@ -104,6 +110,27 @@ export class LmsPlatformAccessory {
     const client = new SlimServer(await discoverSlimServer());
     const volume = await client.query(this.id, 'mixer', 'volume', `${this.state.Volume}`);
     this.platform.log.debug('Set Characteristic Brightness -> ', volume);
+  }
+
+  /**
+   */
+  async getBrightness(): Promise<CharacteristicValue> {
+
+    const client = new SlimServer(await discoverSlimServer());
+    const status = await client.query(this.id, 'status');
+    this.state.Brightness = Math.max(Number(status['mixer volume']), 0);
+
+    this.platform.log.debug('Get Characteristic Brightness ->', this.state.Brightness);
+    return this.state.Brightness;
+  }
+
+  /**
+   */
+  async setBrightness(value: CharacteristicValue) {
+    this.state.Brightness = Math.max(value as number, 0);
+    const client = new SlimServer(await discoverSlimServer());
+    const brightness = await client.query(this.id, 'mixer', 'volume', `${this.state.Brightness}`);
+    this.platform.log.debug('Set Characteristic Brightness -> ', brightness);
   }
 
   /**
