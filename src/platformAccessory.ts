@@ -1,6 +1,7 @@
 import { Service, PlatformAccessory, CharacteristicValue } from 'homebridge';
 
 import { LmsHomebridgePlatform } from './platform';
+import { SlimServer, discoverSlimServer } from './lms';
 
 /**
  * Platform Accessory
@@ -14,81 +15,44 @@ export class LmsPlatformAccessory {
    * These are just used to create a working example
    * You should implement your own code to track the state of your accessory
    */
-  private exampleStates = {
+  private state = {
     On: false,
-    Brightness: 100,
+    Volume: 100,
+    Mute: false,
   };
+
+  private id: string;
 
   constructor(
     private readonly platform: LmsHomebridgePlatform,
     private readonly accessory: PlatformAccessory,
   ) {
 
+    this.id = accessory.context.player_id;
+
     // set accessory information
     this.accessory.getService(this.platform.Service.AccessoryInformation)!
-      .setCharacteristic(this.platform.Characteristic.Manufacturer, 'Manufaktur')
-      .setCharacteristic(this.platform.Characteristic.Model, 'Yamaha RX497')
-      .setCharacteristic(this.platform.Characteristic.SerialNumber, 'Default-Serial');
+      .setCharacteristic(this.platform.Characteristic.Manufacturer, 'Logitech')
+      .setCharacteristic(this.platform.Characteristic.Model, 'Squeezebox')
+      .setCharacteristic(this.platform.Characteristic.SerialNumber, accessory.context.player_id);
 
-    // get the LightBulb service if it exists, otherwise create a new LightBulb service
-    // you can create multiple services for each accessory
-    this.service = this.accessory.getService(this.platform.Service.Lightbulb) || this.accessory.addService(this.platform.Service.Lightbulb);
+    this.service = this.accessory.getService(this.platform.Service.Speaker) || this.accessory.addService(this.platform.Service.Speaker);
 
     // set the service name, this is what is displayed as the default name on the Home app
     // in this example we are using the name we stored in the `accessory.context` in the `discoverDevices` method.
     this.service.setCharacteristic(this.platform.Characteristic.Name, accessory.context.device.exampleDisplayName);
 
-    // each service must implement at-minimum the "required characteristics" for the given service type
-    // see https://developers.homebridge.io/#/service/Lightbulb
-
-    // register handlers for the On/Off Characteristic
     this.service.getCharacteristic(this.platform.Characteristic.On)
-      .onSet(this.setOn.bind(this))                // SET - bind to the `setOn` method below
-      .onGet(this.getOn.bind(this));               // GET - bind to the `getOn` method below
+      .onSet(this.setOn.bind(this))
+      .onGet(this.getOn.bind(this));
 
-    // register handlers for the Brightness Characteristic
-    this.service.getCharacteristic(this.platform.Characteristic.Brightness)
-      .onSet(this.setBrightness.bind(this));       // SET - bind to the 'setBrightness` method below
+    this.service.getCharacteristic(this.platform.Characteristic.Volume)
+      .onSet(this.setVolume.bind(this))
+      .onGet(this.getVolume.bind(this));
 
-    /**
-     * Creating multiple services of the same type.
-     *
-     * To avoid "Cannot add a Service with the same UUID another Service without also defining a unique 'subtype' property." error,
-     * when creating multiple services of the same type, you need to use the following syntax to specify a name and subtype id:
-     * this.accessory.getService('NAME') || this.accessory.addService(this.platform.Service.Lightbulb, 'NAME', 'USER_DEFINED_SUBTYPE_ID');
-     *
-     * The USER_DEFINED_SUBTYPE must be unique to the platform accessory (if you platform exposes multiple accessories, each accessory
-     * can use the same sub type id.)
-     */
-
-    // Example: add two "motion sensor" services to the accessory
-    const motionSensorOneService = this.accessory.getService('Motion Sensor One Name') ||
-      this.accessory.addService(this.platform.Service.MotionSensor, 'Motion Sensor One Name', 'YourUniqueIdentifier-1');
-
-    const motionSensorTwoService = this.accessory.getService('Motion Sensor Two Name') ||
-      this.accessory.addService(this.platform.Service.MotionSensor, 'Motion Sensor Two Name', 'YourUniqueIdentifier-2');
-
-    /**
-     * Updating characteristics values asynchronously.
-     *
-     * Example showing how to update the state of a Characteristic asynchronously instead
-     * of using the `on('get')` handlers.
-     * Here we change update the motion sensor trigger states on and off every 10 seconds
-     * the `updateCharacteristic` method.
-     *
-     */
-    let motionDetected = false;
-    setInterval(() => {
-      // EXAMPLE - inverse the trigger
-      motionDetected = !motionDetected;
-
-      // push the new value to HomeKit
-      motionSensorOneService.updateCharacteristic(this.platform.Characteristic.MotionDetected, motionDetected);
-      motionSensorTwoService.updateCharacteristic(this.platform.Characteristic.MotionDetected, !motionDetected);
-
-      this.platform.log.debug('Triggering motionSensorOneService:', motionDetected);
-      this.platform.log.debug('Triggering motionSensorTwoService:', !motionDetected);
-    }, 10000);
+    this.service.getCharacteristic(this.platform.Characteristic.Mute)
+      .onSet(this.setMute.bind(this))
+      .onGet(this.getMute.bind(this));
   }
 
   /**
@@ -96,8 +60,12 @@ export class LmsPlatformAccessory {
    * These are sent when the user changes the state of an accessory, for example, turning on a Light bulb.
    */
   async setOn(value: CharacteristicValue) {
-    // implement your own code to turn your device on/off
-    this.exampleStates.On = value as boolean;
+
+    this.state.On = value as boolean;
+
+    discoverSlimServer()
+      .then(host => new SlimServer(host))
+      .then(client => client.query(this.id, 'power', `${Number(value)}`));
 
     this.platform.log.debug('Set Characteristic On ->', value);
   }
@@ -116,8 +84,11 @@ export class LmsPlatformAccessory {
    * this.service.updateCharacteristic(this.platform.Characteristic.On, true)
    */
   async getOn(): Promise<CharacteristicValue> {
-    // implement your own code to check if the device is on
-    const isOn = this.exampleStates.On;
+    let isOn = this.state.On;
+
+    const client = new SlimServer(await discoverSlimServer());
+    const status = await client.query(this.id, 'status');
+    isOn = Boolean(Number(status.power));
 
     this.platform.log.debug('Get Characteristic On ->', isOn);
 
@@ -128,14 +99,53 @@ export class LmsPlatformAccessory {
   }
 
   /**
-   * Handle "SET" requests from HomeKit
-   * These are sent when the user changes the state of an accessory, for example, changing the Brightness
    */
-  async setBrightness(value: CharacteristicValue) {
-    // implement your own code to set the brightness
-    this.exampleStates.Brightness = value as number;
+  async getVolume(): Promise<CharacteristicValue> {
+    let volume = this.state.Volume;
 
-    this.platform.log.debug('Set Characteristic Brightness -> ', value);
+    const client = new SlimServer(await discoverSlimServer());
+    const status = await client.query(this.id, 'status');
+    volume = Number(status['mixer volume']);
+
+    this.platform.log.debug('Get Characteristic Volume ->', volume);
+
+    return volume;
+  }
+
+  /**
+   */
+  async setVolume(value: CharacteristicValue) {
+    this.state.Volume = value as number;
+    const client = new SlimServer(await discoverSlimServer());
+    const volume = await client.query(this.id, 'mixer', 'volume', `${this.state.Volume}`);
+    this.platform.log.debug('Set Characteristic Brightness -> ', volume);
+  }
+
+  /**
+   */
+  async getMute(): Promise<CharacteristicValue> {
+
+    const client = new SlimServer(await discoverSlimServer());
+    const status = await client.query(this.id, 'status');
+    this.state.Mute = Boolean(Number(status['mixer muting']));
+
+    this.platform.log.debug('Get Characteristic Volume ->', this.state.Mute);
+
+    return this.state.Mute;
+  }
+
+  /**
+   */
+  async setMute(value: CharacteristicValue): Promise<CharacteristicValue> {
+
+    this.state.Mute = value as boolean;
+    const client = new SlimServer(await discoverSlimServer());
+    const status = await client.query(this.id, 'mixer', 'muting');
+    this.state.Mute = Boolean(Number(status['mixer muting']));
+
+    this.platform.log.debug('Get Characteristic Volume ->', this.state.Mute);
+
+    return this.state.Mute;
   }
 
 }
