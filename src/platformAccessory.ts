@@ -29,17 +29,17 @@ export class LmsPlatformAccessory {
     private readonly accessory: PlatformAccessory,
   ) {
 
-    this.id = accessory.context.player_id;
+    this.id = accessory.context.device.player_id;
 
     // set accessory information
     this.accessory.getService(this.platform.Service.AccessoryInformation)!
       .setCharacteristic(this.platform.Characteristic.Manufacturer, 'Logitech')
       .setCharacteristic(this.platform.Characteristic.Model, 'Squeezebox')
-      .setCharacteristic(this.platform.Characteristic.SerialNumber, accessory.context.player_id);
+      .setCharacteristic(this.platform.Characteristic.SerialNumber, accessory.context.device.player_id);
 
     this.service = this.accessory.getService(this.platform.Service.Speaker) || this.accessory.addService(this.platform.Service.Speaker);
 
-    this.service.setCharacteristic(this.platform.Characteristic.Name, accessory.context.device.exampleDisplayName);
+    this.service.setCharacteristic(this.platform.Characteristic.Name, accessory.context.device.player_name);
 
     this.service.getCharacteristic(this.platform.Characteristic.On)
       .onSet(this.setOn.bind(this))
