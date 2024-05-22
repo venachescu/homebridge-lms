@@ -93,6 +93,7 @@ export class SlimServer {
   }
 
   async request(...args: string[]) {
+    console.log(`Request: ${args}`);
     return new Promise<string[]>((resolve) => {
       this
         .connect()

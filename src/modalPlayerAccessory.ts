@@ -33,7 +33,6 @@ export class LmsModalPlayerAccessory {
     name: string,
     input: string,
   ) {
-
     this.id = `${accessory.context.device.player_id}:${input}`;
     this.playerId = accessory.context.device.player_id;
     this.slimserver = slimserver;
@@ -68,7 +67,7 @@ export class LmsModalPlayerAccessory {
     this.platform.log.debug('Response ->', response);
 
     if (value) {
-      const response = await client.query(this.playerId, 'input', `Input${this.input}`);
+      const response = await client.query(this.playerId, 'irblaster', 'RX497', `INPUT_${this.input}`);
       this.platform.log.debug('Response ->', response);
     }
 
