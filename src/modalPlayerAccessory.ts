@@ -17,6 +17,7 @@ export class LmsModalPlayerAccessory {
    * You should implement your own code to track the state of your accessory
    */
   private state = {
+    deviceOn: false,
     On: false,
   };
 
@@ -60,7 +61,7 @@ export class LmsModalPlayerAccessory {
    */
   async setOn(value: CharacteristicValue) {
 
-    const prevState = Boolean(this.state.On);
+    const prevDeviceState = Boolean(this.state.deviceOn);
     this.state.On = value as boolean;
 
     const client = await new SlimServer(this.slimserver);
@@ -68,7 +69,7 @@ export class LmsModalPlayerAccessory {
     this.platform.log.debug('Response ->', response);
 
     if (value) {
-      if (!prevState) {
+      if (!prevDeviceState) {
         await this.sleep(2000);
       }
       const response = await client.query(this.playerId, 'irblaster', 'send', 'RX497', `INPUT_${this.input}`);
@@ -76,7 +77,7 @@ export class LmsModalPlayerAccessory {
       this.platform.log.debug('Response ->', response);
     }
 
-    this.platform.log.debug(`Set Characteristic On From ${prevState} -> ${value}`);
+    this.platform.log.debug(`Set Characteristic On From ${prevDeviceState} -> ${value}`);
   }
 
   /**
@@ -87,7 +88,8 @@ export class LmsModalPlayerAccessory {
 
     const client = new SlimServer(this.slimserver);
     const status = await client.query(this.playerId, 'status');
-    this.state.On = Boolean(Number(status.power)) && (this.platform.inputStates[this.playerId] === this.input);
+    this.state.deviceOn = Boolean(Number(status.power));
+    this.state.On = this.state.deviceOn && (this.platform.inputStates[this.playerId] === this.input);
 
     this.platform.log.debug('Power state', Boolean(Number(status.power)));
     this.platform.log.debug('Input states', (this.platform.inputStates[this.playerId] === this.input));
