@@ -60,6 +60,7 @@ export class LmsModalPlayerAccessory {
    */
   async setOn(value: CharacteristicValue) {
 
+    const prevState = Boolean(this.state.On);
     this.state.On = value as boolean;
 
     const client = await new SlimServer(this.slimserver);
@@ -67,12 +68,15 @@ export class LmsModalPlayerAccessory {
     this.platform.log.debug('Response ->', response);
 
     if (value) {
+      if (!prevState) {
+        await this.sleep(2000);
+      }
       const response = await client.query(this.playerId, 'irblaster', 'send', 'RX497', `INPUT_${this.input}`);
       this.platform.inputStates[this.playerId] = this.input;
       this.platform.log.debug('Response ->', response);
     }
 
-    this.platform.log.debug('Set Characteristic On ->', value);
+    this.platform.log.debug(`Set Characteristic On From ${prevState} -> ${value}`);
   }
 
   /**
@@ -91,6 +95,10 @@ export class LmsModalPlayerAccessory {
     // if you need to return an error to show the device as "Not Responding" in the Home app:
     // throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
     return this.state.On;
+  }
+
+  sleep(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
 }

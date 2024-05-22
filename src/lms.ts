@@ -40,6 +40,15 @@ export function discoverSlimServer(): Promise<string> {
   });
 }
 
+export interface SlimDevice {
+  id: string;
+  name: string;
+}
+
+export interface SlimDeviceMode extends SlimDevice {
+  input: string;
+}
+
 export class SlimServer {
 
   host: string;
