@@ -74,7 +74,7 @@ export class SlimServer {
     for (let index = 0; index < count; index++) {
       const player_id = await this.question('player', 'id', `${index}`) as string;
       const response = await this.query(player_id, 'status');
-      results[index] = { player_id, ...response };
+      results[index] = { player_id, host: this.host, ...response };
     }
     return results;
   }

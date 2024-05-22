@@ -24,13 +24,16 @@ export class LmsPlatformAccessory {
   };
 
   private id: string;
+  private slimserver: string;
 
   constructor(
     private readonly platform: LmsHomebridgePlatform,
     private readonly accessory: PlatformAccessory,
+    slimserver: string,
   ) {
 
     this.id = accessory.context.device.player_id;
+    this.slimserver = slimserver;
 
     // set accessory information
     this.accessory.getService(this.platform.Service.AccessoryInformation)!
@@ -82,6 +85,7 @@ export class LmsPlatformAccessory {
    */
   async getOn(): Promise<CharacteristicValue> {
 
+    this.platform.log.debug(`connecting, stored hostname: ${this.slimserver}`);
     const client = new SlimServer(await discoverSlimServer());
     const status = await client.query(this.id, 'status');
     this.state.On = Boolean(Number(status.power));
