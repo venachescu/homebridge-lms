@@ -68,6 +68,7 @@ export class LmsModalPlayerAccessory {
 
     if (value) {
       const response = await client.query(this.playerId, 'irblaster', 'send', 'RX497', `INPUT_${this.input}`);
+      this.platform.inputStates[this.playerId] = this.input;
       this.platform.log.debug('Response ->', response);
     }
 
