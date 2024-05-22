@@ -21,6 +21,9 @@
     "src/"
   ],
   "exclude": [
+    "src/platform.ts",
+    "src/platformAccessory.ts",
+    "src/playerAccessory.ts",
     "**/*.spec.ts"
   ]
 }
