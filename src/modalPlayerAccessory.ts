@@ -67,8 +67,9 @@ export class LmsModalPlayerAccessory {
     this.state.On = value as boolean;
 
     const client = new SlimServer(this.server);
-    await client.query(this.playerId, 'power', `${Number(value)}`);
+    const power = await client.query(this.playerId, 'power', `${Number(value)}`);
     this.platform.players[this.playerId].power = Number(value);
+    this.platform.log.debug(`sent power query: ${power}`);
 
     if (value) {
       if (!prevDeviceState) {

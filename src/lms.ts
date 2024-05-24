@@ -101,14 +101,13 @@ export class SlimServer {
   }
 
   async query(...args: string[]) {
-    const values = await this.request(...args);
-    console.log(`query length ${values.length}, args length ${args.length}`);
-    const result = values.slice(args.length);
+    const result = await this.request(...args);
+    console.log(`result length ${result.length}, args length ${args.length}`);
     // const result = (await this.request(...args)).slice(args.length);
-    if (result.length === 1) {
-      return result;
+    if (result.length === args.length) {
+      return result[result.length - 1];
     }
-    return Object.fromEntries(result.map(item => item.split(':')));
+    return Object.fromEntries(result.slice(args.length).map(item => item.split(':')));
   }
 
   async request(...args: string[]) {

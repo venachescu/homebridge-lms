@@ -61,15 +61,14 @@ export class LmsHomebridgePlatform implements DynamicPlatformPlugin {
 
         for (const player of players) {
 
-          const { player_id: playerId, player_name: playerName, power, host } = player;
-          this.players[playerId] = { playerName, power: Number(power), host, input: '' };
-
-          this.log.info(`attaching to player: ${playerId} ${playerName} ${power} ${host}`);
-          this.log.info(`in configuration: ${playerId in this.configuration}`);
           if (!(player.player_id in this.configuration)) {
             continue;
           }
 
+          const { player_id: playerId, player_name: playerName, power, host } = player;
+          this.players[playerId] = { playerName, power: Number(power), host, input: '' };
+
+          this.log.debug(`Attaching player ${playerName} ${playerId} on ${host}`);
           for (const { name, input } of this.configuration[playerId]) {
 
             const uuid = this.api.hap.uuid.generate(`${playerId}:${name}`);
@@ -83,7 +82,6 @@ export class LmsHomebridgePlatform implements DynamicPlatformPlugin {
             } else {
               this.log.info('Adding new accessory:', name);
 
-              // const accessory = new this.api.platformAccessory(playerConfig.name, uuid, Categories.SPEAKER);
               const accessory = new this.api.platformAccessory(name, uuid);
               accessory.context.device = this.players;
 
