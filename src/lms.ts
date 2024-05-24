@@ -73,14 +73,9 @@ export class SlimServer {
   async connect() {
     return new Promise<net.Socket>((resolve, reject) => {
 
-      if (this._client !== null) {
-        resolve(this._client);
-      }
-
       const client = new net.Socket();
       client.connect(this.port, this.host, () => {
         console.log('Connected to server');
-        this._client = client;
         resolve(client);
       });
 
@@ -121,6 +116,7 @@ export class SlimServer {
         .then((client) => {
           client.on('data', (data: Buffer) => {
             const response = decodeMessage(data);
+            console.log(`Response: ${response}`);
             resolve(response);
             client.end();
           });
