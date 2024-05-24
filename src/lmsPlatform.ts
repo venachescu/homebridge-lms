@@ -79,7 +79,7 @@ export class LmsHomebridgePlatform implements DynamicPlatformPlugin {
 
             if (existingAccessory) {
               this.log.info('Restoring existing accessory from cache:', existingAccessory.displayName);
-              new LmsModalPlayerAccessory(this, existingAccessory, host, name, input);
+              new LmsModalPlayerAccessory(this, existingAccessory, host, playerId, name, input);
             } else {
               this.log.info('Adding new accessory:', name);
 
@@ -87,7 +87,7 @@ export class LmsHomebridgePlatform implements DynamicPlatformPlugin {
               const accessory = new this.api.platformAccessory(name, uuid);
               accessory.context.device = this.players;
 
-              new LmsModalPlayerAccessory(this, accessory, host, name, input);
+              new LmsModalPlayerAccessory(this, accessory, host, playerId, name, input);
               this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
             }
           }

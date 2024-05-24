@@ -23,20 +23,21 @@ export class LmsModalPlayerAccessory {
 
   private id: string;
   private playerId: string;
-  private slimserver: string;
+  private server: string;
   private name: string;
   private input: string;
 
   constructor(
     private readonly platform: LmsHomebridgePlatform,
     private readonly accessory: PlatformAccessory,
-    slimserver: string,
+    server: string,
+    playerId: string,
     name: string,
     input: string,
   ) {
-    this.id = `${accessory.context.device.playerId}:${input}`;
-    this.playerId = accessory.context.device.playerId;
-    this.slimserver = slimserver;
+    this.id = `${playerId}:${input}`;
+    this.playerId = playerId;
+    this.server = server;
     this.name = name;
     this.input = input.toUpperCase();
 
@@ -67,7 +68,7 @@ export class LmsModalPlayerAccessory {
     const prevDeviceState = Boolean(this.state.deviceOn);
     this.state.On = value as boolean;
 
-    const client = new SlimServer(this.slimserver);
+    const client = new SlimServer(this.server);
     const response = await client.query(this.playerId, 'power', `${Number(value)}`);
     this.platform.log.debug('Response ->', response);
 
@@ -91,7 +92,7 @@ export class LmsModalPlayerAccessory {
 
     this.platform.log.debug(`${this.id} ${this.playerId} ${this.name} ${this.input}`);
 
-    const client = new SlimServer(this.slimserver);
+    const client = new SlimServer(this.server);
     const status = await client.query(this.playerId, 'status');
     this.state.deviceOn = Boolean(Number(status.power));
     this.state.On = this.state.deviceOn && (this.platform.inputStates[this.playerId] === this.input);
