@@ -83,7 +83,8 @@ export class LmsHomebridgePlatform implements DynamicPlatformPlugin {
             } else {
               this.log.info('Adding new accessory:', playerConfig.name);
 
-              const accessory = new this.api.platformAccessory(playerConfig.name, uuid, Categories.SPEAKER);
+              // const accessory = new this.api.platformAccessory(playerConfig.name, uuid, Categories.SPEAKER);
+              const accessory = new this.api.platformAccessory(playerConfig.name, uuid);
               accessory.context.device = this.players;
 
               new LmsModalPlayerAccessory(this, accessory, host, playerConfig.name, playerConfig.input);
