@@ -17,6 +17,7 @@ export class LmsHomebridgePlatform implements DynamicPlatformPlugin {
 
   // this is used to track restored cached accessories
   public readonly accessories: PlatformAccessory[] = [];
+  public readonly deviceInputs: { [deviceId: string]: string} = {};
   public readonly inputStates: { [macAddress: string]: string } = {};
   public readonly configuration: { [macAddress: string]: Array<{ name: string; input: string }> } = {
     '00:04:20:07:ec:32': [

@@ -46,7 +46,8 @@ export class LmsModalPlayerAccessory {
       .setCharacteristic(this.platform.Characteristic.Model, 'Squeezebox')
       .setCharacteristic(this.platform.Characteristic.SerialNumber, accessory.context.device.player_id);
 
-    this.service = this.accessory.getService(this.platform.Service.Lightbulb) || this.accessory.addService(this.platform.Service.Lightbulb);
+    this.service = this.accessory.getService(this.platform.Service.Switch) || this.accessory.addService(this.platform.Service.Switch);
+    // this.service = this.accessory.getService(this.platform.Service.Lightbulb) || this.accessory.addService(this.platform.Service.Lightbulb);
 
     this.service.setCharacteristic(this.platform.Characteristic.Name, this.name);
 

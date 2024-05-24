@@ -16,6 +16,7 @@ export class LmsHomebridgePlatform implements DynamicPlatformPlugin {
 
   // this is used to track restored cached accessories
   public readonly accessories: PlatformAccessory[] = [];
+  public readonly server: SlimServer;
 
   constructor(
     public readonly log: Logger,

@@ -40,9 +40,18 @@ export function discoverSlimServer(): Promise<string> {
   });
 }
 
-export interface SlimDevice {
+export class SlimDevice {
+
   id: string;
   name: string;
+  server: SlimServer;
+
+  constructor(id: string, name: string, server: SlimServer) {
+    this.id = id;
+    this.name = name;
+    this.server = server;
+  }
+
 }
 
 export interface SlimDeviceMode extends SlimDevice {
@@ -63,8 +72,12 @@ export class SlimServer {
 
   async connect() {
     return new Promise<net.Socket>((resolve, reject) => {
-      const client = new net.Socket();
 
+      if (this._client !== null) {
+        resolve(this._client);
+      }
+
+      const client = new net.Socket();
       client.connect(this.port, this.host, () => {
         console.log('Connected to server');
         this._client = client;
@@ -84,8 +97,7 @@ export class SlimServer {
       const player_id = await this.question('player', 'id', `${index}`) as string;
       const response = await this.query(player_id, 'status');
       results[index] = { player_id, host: this.host, ...response };
-    }
-    return results;
+    } return results;
   }
 
   async question(...args: string[]) {
