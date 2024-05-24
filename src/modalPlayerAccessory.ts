@@ -47,7 +47,7 @@ export class LmsModalPlayerAccessory {
       .setCharacteristic(this.platform.Characteristic.SerialNumber, this.id);
 
     // this.service = this.accessory.getService(this.platform.Service.Speaker) || this.accessory.addService(this.platform.Service.Speaker);
-    this.service = this.accessory.getService(this.platform.Service.Lightbulb) || this.accessory.addService(this.platform.Service.Lightbulb);
+    this.service = this.accessory.getService(this.platform.Service.Outlet) || this.accessory.addService(this.platform.Service.Outlet);
 
     this.service.setCharacteristic(this.platform.Characteristic.Name, this.name);
 
