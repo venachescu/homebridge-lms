@@ -34,8 +34,8 @@ export class LmsModalPlayerAccessory {
     name: string,
     input: string,
   ) {
-    this.id = `${accessory.context.device.player_id}:${input}`;
-    this.playerId = accessory.context.device.player_id;
+    this.id = `${accessory.context.device.playerId}:${input}`;
+    this.playerId = accessory.context.device.playerId;
     this.slimserver = slimserver;
     this.name = name;
     this.input = input.toUpperCase();
@@ -88,6 +88,8 @@ export class LmsModalPlayerAccessory {
    * this.service.updateCharacteristic(this.platform.Characteristic.On, true)
    */
   async getOn(): Promise<CharacteristicValue> {
+
+    this.platform.log.debug(`${this.id} ${this.playerId} ${this.name} ${this.input}`);
 
     const client = new SlimServer(this.slimserver);
     const status = await client.query(this.playerId, 'status');
