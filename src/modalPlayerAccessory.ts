@@ -44,9 +44,9 @@ export class LmsModalPlayerAccessory {
     this.accessory.getService(this.platform.Service.AccessoryInformation)!
       .setCharacteristic(this.platform.Characteristic.Manufacturer, 'Logitech')
       .setCharacteristic(this.platform.Characteristic.Model, 'Squeezebox')
-      .setCharacteristic(this.platform.Characteristic.SerialNumber, accessory.context.device.player_id);
+      .setCharacteristic(this.platform.Characteristic.SerialNumber, this.id);
 
-    this.service = this.accessory.getService(this.platform.Service.Switch) || this.accessory.addService(this.platform.Service.Switch);
+    this.service = this.accessory.getService(this.platform.Service.Speaker) || this.accessory.addService(this.platform.Service.Speaker);
     // this.service = this.accessory.getService(this.platform.Service.Lightbulb) || this.accessory.addService(this.platform.Service.Lightbulb);
 
     this.service.setCharacteristic(this.platform.Characteristic.Name, this.name);
@@ -62,10 +62,12 @@ export class LmsModalPlayerAccessory {
    */
   async setOn(value: CharacteristicValue) {
 
+    this.platform.log.debug(`${JSON.stringify(this.platform.players)}`);
+
     const prevDeviceState = Boolean(this.state.deviceOn);
     this.state.On = value as boolean;
 
-    const client = await new SlimServer(this.slimserver);
+    const client = new SlimServer(this.slimserver);
     const response = await client.query(this.playerId, 'power', `${Number(value)}`);
     this.platform.log.debug('Response ->', response);
 

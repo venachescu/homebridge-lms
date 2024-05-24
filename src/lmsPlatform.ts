@@ -19,6 +19,9 @@ export class LmsHomebridgePlatform implements DynamicPlatformPlugin {
   public readonly accessories: PlatformAccessory[] = [];
   public readonly deviceInputs: { [deviceId: string]: string} = {};
   public readonly inputStates: { [macAddress: string]: string } = {};
+
+  public server?: SlimServer;
+  public readonly players: { playerId?: string } = {};
   public readonly configuration: { [macAddress: string]: Array<{ name: string; input: string }> } = {
     '00:04:20:07:ec:32': [
       { name: 'Technics', input: 'CD' },
@@ -53,31 +56,37 @@ export class LmsHomebridgePlatform implements DynamicPlatformPlugin {
 
     discoverSlimServer()
       .then(host => new SlimServer(host))
-      .then(client => client.getPlayers())
+      .then(server => {
+        this.server = server;
+        return server.getPlayers();
+      })
       .then(players => {
 
-        for (const device of players) {
+        for (const player of players) {
 
-          if (!(device.player_id in this.configuration)) {
+          if (!(player.player_id in this.configuration)) {
             continue;
           }
 
-          for (const playerMode of this.configuration[device.player_id]) {
+          const { player_id: playerId, player_name: name, power: status, host } = player;
+          this.players[playerId] = { name, status, host, input: '' };
 
-            const uuid = this.api.hap.uuid.generate(`${device.player_id}:${playerMode.name}`);
+          for (const playerConfig of this.configuration[player.player_id]) {
+
+            const uuid = this.api.hap.uuid.generate(`${player.player_id}:${playerConfig.name}`);
             const existingAccessory = this.accessories.find(accessory => accessory.UUID === uuid);
-            this.inputStates[device.player_id] = playerMode.input;
+            this.players[playerId].input = playerConfig.input;
 
             if (existingAccessory) {
               this.log.info('Restoring existing accessory from cache:', existingAccessory.displayName);
-              new LmsModalPlayerAccessory(this, existingAccessory, device.host, playerMode.name, playerMode.input);
+              new LmsModalPlayerAccessory(this, existingAccessory, host, playerConfig.name, playerConfig.input);
             } else {
-              this.log.info('Adding new accessory:', device.player_name);
+              this.log.info('Adding new accessory:', playerConfig.name);
 
-              const accessory = new this.api.platformAccessory(playerMode.name, uuid, Categories.SWITCH);
-              accessory.context.device = device;
+              const accessory = new this.api.platformAccessory(playerConfig.name, uuid, Categories.SPEAKER);
+              accessory.context.device = this.players;
 
-              new LmsModalPlayerAccessory(this, accessory, device.host, playerMode.name, playerMode.input);
+              new LmsModalPlayerAccessory(this, accessory, host, playerConfig.name, playerConfig.input);
               this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
             }
           }
