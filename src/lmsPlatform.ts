@@ -1,4 +1,4 @@
-import { API, DynamicPlatformPlugin, Logger, PlatformAccessory, PlatformConfig, Service, Characteristic } from 'homebridge';
+import { API, DynamicPlatformPlugin, Logger, PlatformAccessory, PlatformConfig, Service, Characteristic, Categories } from 'homebridge';
 
 import { PLATFORM_NAME, PLUGIN_NAME } from './settings';
 import { LmsModalPlayerAccessory } from './modalPlayerAccessory';
@@ -74,7 +74,7 @@ export class LmsHomebridgePlatform implements DynamicPlatformPlugin {
             } else {
               this.log.info('Adding new accessory:', device.player_name);
 
-              const accessory = new this.api.platformAccessory(playerMode.name, uuid);
+              const accessory = new this.api.platformAccessory(playerMode.name, uuid, Categories.SWITCH);
               accessory.context.device = device;
 
               new LmsModalPlayerAccessory(this, accessory, device.host, playerMode.name, playerMode.input);
