@@ -76,7 +76,7 @@ export class LmsModalPlayerAccessory {
       }
       await client.query(this.playerId, 'irblaster', 'send', 'RX497', `INPUT_${this.input}`);
       this.platform.inputStates[this.playerId] = this.input;
-      this.platform.players[this.playerId] = this.input;
+      this.platform.players[this.playerId].input = this.input;
     }
 
     this.platform.log.debug(`Set Characteristic On From ${prevDeviceState} -> ${value}`);
