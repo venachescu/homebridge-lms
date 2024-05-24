@@ -56,10 +56,7 @@ export class LmsHomebridgePlatform implements DynamicPlatformPlugin {
 
     discoverSlimServer()
       .then(host => new SlimServer(host))
-      .then(server => {
-        this.server = server;
-        return server.getPlayers();
-      })
+      .then(server => server.getPlayers())
       .then(players => {
 
         for (const player of players) {
