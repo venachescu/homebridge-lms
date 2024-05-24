@@ -63,14 +63,13 @@ export class LmsModalPlayerAccessory {
    */
   async setOn(value: CharacteristicValue) {
 
-    this.platform.log.debug(`${JSON.stringify(this.platform.players)}`);
-
     const prevDeviceState = Boolean(this.state.deviceOn);
     this.state.On = value as boolean;
 
     const client = new SlimServer(this.server);
-    const response = await client.query(this.playerId, 'power', `${Number(value)}`);
-    this.platform.log.debug('Response ->', response);
+    await client.query(this.playerId, 'power', `${Number(value)}`);
+    this.platform.players[this.playerId].power = value;
+    this.platform.log.debug(`${JSON.stringify(this.platform.players)}`);
 
     if (value) {
       if (!prevDeviceState) {
@@ -78,6 +77,7 @@ export class LmsModalPlayerAccessory {
       }
       const response = await client.query(this.playerId, 'irblaster', 'send', 'RX497', `INPUT_${this.input}`);
       this.platform.inputStates[this.playerId] = this.input;
+      this.platform.players[this.playerId] = this.input;
       this.platform.log.debug('Response ->', response);
     }
 
@@ -91,6 +91,8 @@ export class LmsModalPlayerAccessory {
   async getOn(): Promise<CharacteristicValue> {
 
     this.platform.log.debug(`${this.id} ${this.playerId} ${this.name} ${this.input}`);
+    this.platform.log.debug(`Power: ${this.platform.players[this.playerId].power}`);
+    this.platform.log.debug(`Input: ${this.platform.players[this.playerId].power}`);
 
     const client = new SlimServer(this.server);
     const status = await client.query(this.playerId, 'status');
