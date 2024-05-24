@@ -98,7 +98,7 @@ export class LmsModalPlayerAccessory {
 
     const client = new SlimServer(this.server);
     const status = await client.query(this.playerId, 'status');
-    this.platform.players[this.playerId].power = status.power;
+    this.platform.players[this.playerId].power = Number(status.power);
     // this.state.deviceOn = Boolean(Number(status.power));
     this.state.On = this.platform.players[this.playerId].power && (this.platform.players[this.playerId].input === this.input);
 
