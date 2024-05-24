@@ -59,35 +59,35 @@ export class LmsHomebridgePlatform implements DynamicPlatformPlugin {
       .then(server => server.getPlayers())
       .then(players => {
 
-        this.log.info(`players: ${JSON.stringify(players)}`);
         for (const player of players) {
 
-          const { player_id: playerId, player_name: name, power: status, host } = player;
-          this.players[playerId] = { name, status, host, input: '' };
+          const { player_id: playerId, player_name: playerName, power: status, host } = player;
+          this.players[playerId] = { playerName, status, host, input: '' };
 
-          this.log.info(`attaching to player: ${playerId} ${name} ${status} ${host}`);
+          this.log.info(`attaching to player: ${playerId} ${playerName} ${status} ${host}`);
           this.log.info(`in configuration: ${playerId in this.configuration}`);
           if (!(player.player_id in this.configuration)) {
             continue;
           }
 
-          for (const playerConfig of this.configuration[playerId]) {
+          for (const { name, input } of this.configuration[playerId]) {
 
-            const uuid = this.api.hap.uuid.generate(`${player.player_id}:${playerConfig.name}`);
+            const uuid = this.api.hap.uuid.generate(`${playerId}:${name}`);
+            this.log.debug(`generating uuid: ${playerId}:${name}, ${uuid}`);
             const existingAccessory = this.accessories.find(accessory => accessory.UUID === uuid);
-            this.players[playerId].input = playerConfig.input;
+            this.players[playerId].input = input;
 
             if (existingAccessory) {
               this.log.info('Restoring existing accessory from cache:', existingAccessory.displayName);
-              new LmsModalPlayerAccessory(this, existingAccessory, host, playerConfig.name, playerConfig.input);
+              new LmsModalPlayerAccessory(this, existingAccessory, host, name, input);
             } else {
-              this.log.info('Adding new accessory:', playerConfig.name);
+              this.log.info('Adding new accessory:', name);
 
               // const accessory = new this.api.platformAccessory(playerConfig.name, uuid, Categories.SPEAKER);
-              const accessory = new this.api.platformAccessory(playerConfig.name, uuid);
-              accessory.context.device = this.players[playerId];
+              const accessory = new this.api.platformAccessory(name, uuid);
+              accessory.context.device = this.players;
 
-              new LmsModalPlayerAccessory(this, accessory, host, playerConfig.name, playerConfig.input);
+              new LmsModalPlayerAccessory(this, accessory, host, name, input);
               this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
             }
           }

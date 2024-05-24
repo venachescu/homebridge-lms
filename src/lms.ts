@@ -109,14 +109,13 @@ export class SlimServer {
   }
 
   async request(...args: string[]) {
-    console.log(`Request: ${args}`);
+    // console.log(`Request: ${args}`);
     return new Promise<string[]>((resolve) => {
       this
         .connect()
         .then((client) => {
           client.on('data', (data: Buffer) => {
             const response = decodeMessage(data);
-            console.log(`Response: ${response}`);
             resolve(response);
             client.end();
           });
