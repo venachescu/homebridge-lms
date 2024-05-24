@@ -101,7 +101,10 @@ export class SlimServer {
   }
 
   async query(...args: string[]) {
-    const result = (await this.request(...args)).slice(args.length);
+    const values = await this.request(...args);
+    console.log(`query length ${values.length}`);
+    const result = values.slice(args.length);
+    // const result = (await this.request(...args)).slice(args.length);
     if (result.length === 1) {
       return result;
     }
