@@ -102,8 +102,6 @@ export class SlimServer {
 
   async query(...args: string[]) {
     const result = await this.request(...args);
-    console.log(`result length ${result.length}, args length ${args.length}`);
-    // const result = (await this.request(...args)).slice(args.length);
     if (result.length === args.length) {
       return result[result.length - 1];
     }
@@ -111,7 +109,6 @@ export class SlimServer {
   }
 
   async request(...args: string[]) {
-    // console.log(`Request: ${args}`);
     return new Promise<string[]>((resolve) => {
       this
         .connect()

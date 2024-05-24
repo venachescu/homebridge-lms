@@ -72,7 +72,6 @@ export class LmsHomebridgePlatform implements DynamicPlatformPlugin {
           for (const { name, input } of this.configuration[playerId]) {
 
             const uuid = this.api.hap.uuid.generate(`${playerId}:${name}`);
-            this.log.debug(`generating uuid: ${playerId}:${name}, ${uuid}`);
             const existingAccessory = this.accessories.find(accessory => accessory.UUID === uuid);
             this.players[playerId].input = input;
 

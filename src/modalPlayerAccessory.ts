@@ -63,7 +63,8 @@ export class LmsModalPlayerAccessory {
    */
   async setOn(value: CharacteristicValue) {
 
-    const prevDeviceState = Boolean(this.state.deviceOn);
+    // const prevDeviceState = Boolean(this.state.deviceOn);
+    const prevDeviceState = Boolean(this.platform.players[this.playerId].power);
     this.state.On = value as boolean;
 
     const client = new SlimServer(this.server);
@@ -97,11 +98,14 @@ export class LmsModalPlayerAccessory {
 
     const client = new SlimServer(this.server);
     const status = await client.query(this.playerId, 'status');
-    this.state.deviceOn = Boolean(Number(status.power));
-    this.state.On = this.state.deviceOn && (this.platform.inputStates[this.playerId] === this.input);
+    this.platform.players[this.playerId].power = status.power;
+    // this.state.deviceOn = Boolean(Number(status.power));
+    this.state.On = this.platform.players[this.playerId].power && (this.platform.players[this.playerId].input === this.input);
 
-    this.platform.log.debug('Power state', Boolean(Number(status.power)));
-    this.platform.log.debug('Input states', (this.platform.inputStates[this.playerId] === this.input));
+    this.platform.log.debug('Power state', this.platform.players[this.playerId].power);
+    this.platform.log.debug('Input states', (this.platform.players[this.playerId].input === this.input));
+    // this.platform.log.debug('Power state', Boolean(Number(status.power)));
+    // this.platform.log.debug('Input states', (this.platform.inputStates[this.playerId] === this.input));
     this.platform.log.debug('Get Characteristic On ->', this.state.On);
     // if you need to return an error to show the device as "Not Responding" in the Home app:
     // throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
