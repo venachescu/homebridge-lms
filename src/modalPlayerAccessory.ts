@@ -76,7 +76,7 @@ export class LmsModalPlayerAccessory {
       if (!prevDeviceState) {
         await this.sleep(2000);
       }
-      await client.query(this.playerId, 'irblaster', 'send', 'RX497', `INPUT_${this.input}`);
+      await client.query(this.playerId, 'irblaster', 'send', 'YamahaRAX100', `Input${this.input}`);
       this.platform.inputStates[this.playerId] = this.input;
       this.platform.players[this.playerId].input = this.input;
     }
