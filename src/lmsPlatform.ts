@@ -25,7 +25,9 @@ export class LmsHomebridgePlatform implements DynamicPlatformPlugin {
   public readonly configuration: { [macAddress: string]: Array<{ name: string; input: string }> } = {
     '00:04:20:07:ec:32': [
       { name: 'Technics', input: 'CD' },
-      { name: 'Squeezebox', input: 'DVD' },
+      { name: 'Squeezebox', input: 'MDTape' },
+      { name: 'Projector', input: 'DTVCBL' },
+      { name: 'Wireless', input: 'DVD' }
     ],
   };
 
