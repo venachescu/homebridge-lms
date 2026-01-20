@@ -45,8 +45,8 @@ export class LmsModalPlayerAccessory {
 
     // this.service = this.accessory.getService(this.platform.Service.Speaker) || this.accessory.addService(this.platform.Service.Speaker);
     // this.service = this.accessory.getService(this.platform.Service.Outlet) || this.accessory.addService(this.platform.Service.Outlet);
-    this.service = this.accessory.getService(this.platform.Service.Speaker)
-      || this.accessory.addService(this.platform.Service.Speaker);
+    this.service = this.accessory.getService(this.platform.Service.Television)
+      || this.accessory.addService(this.platform.Service.Television);
 
     // set accessory information
     this.accessory.getService(this.platform.Service.AccessoryInformation)!
