@@ -71,24 +71,21 @@ export class LmsHomebridgePlatform implements DynamicPlatformPlugin {
           this.players[playerId] = { playerName, power: Number(power), host, input: '' };
 
           this.log.debug(`Attaching player ${playerName} ${playerId} on ${host}`);
-          for (const { name, input } of this.configuration[playerId]) {
+          const uuid = this.api.hap.uuid.generate(`${playerId}`);
+          const existingAccessory = this.accessories.find(accessory => accessory.UUID === uuid);
+          this.players[playerId].input = 'INPUT';
 
-            const uuid = this.api.hap.uuid.generate(`${playerId}:${name}`);
-            const existingAccessory = this.accessories.find(accessory => accessory.UUID === uuid);
-            this.players[playerId].input = input;
+          if (existingAccessory) {
+            this.log.info('Restoring existing accessory from cache:', existingAccessory.displayName);
+            new LmsModalPlayerAccessory(this, existingAccessory, host, playerId, playerName);
+          } else {
+            this.log.info('Adding new accessory:', playerName);
 
-            if (existingAccessory) {
-              this.log.info('Restoring existing accessory from cache:', existingAccessory.displayName);
-              new LmsModalPlayerAccessory(this, existingAccessory, host, playerId, name, input);
-            } else {
-              this.log.info('Adding new accessory:', name);
+            const accessory = new this.api.platformAccessory(playerName, uuid);
+            accessory.context.device = this.players;
 
-              const accessory = new this.api.platformAccessory(name, uuid);
-              accessory.context.device = this.players;
-
-              new LmsModalPlayerAccessory(this, accessory, host, playerId, name, input);
-              this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
-            }
+            new LmsModalPlayerAccessory(this, accessory, host, playerId, playerName);
+            this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
           }
         }
       });

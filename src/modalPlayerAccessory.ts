@@ -23,8 +23,8 @@ export class LmsModalPlayerAccessory {
 
   private id: string;
   private playerId: string;
+  private playerName: string;
   private server: string;
-  private name: string;
   private input: string;
   private inputSource: number;
 
@@ -33,20 +33,20 @@ export class LmsModalPlayerAccessory {
     private readonly accessory: PlatformAccessory,
     server: string,
     playerId: string,
-    name: string,
-    input: string,
+    playerName?: string,
+    input?: string,
   ) {
-    this.id = `${playerId}:${input}`;
+    this.id = `${playerId}`;
     this.playerId = playerId;
+    this.playerName = playerName || '';
     this.server = server;
-    this.name = name;
-    this.input = input.toUpperCase();
-    this.inputSource = this.platform.Characteristic.InputSourceType.AIRPLAY;
+    this.input = input || 'INPUT';
+    this.inputSource = (this.platform.Characteristic.InputSourceType.AIRPLAY || 0) as number;
 
     // this.service = this.accessory.getService(this.platform.Service.Speaker) || this.accessory.addService(this.platform.Service.Speaker);
     // this.service = this.accessory.getService(this.platform.Service.Outlet) || this.accessory.addService(this.platform.Service.Outlet);
-    this.service = this.accessory.getService(this.platform.Service.InputSource)
-      || this.accessory.addService(this.platform.Service.InputSource);
+    this.service = this.accessory.getService(this.platform.Service.Speaker)
+      || this.accessory.addService(this.platform.Service.Speaker);
 
     // set accessory information
     this.accessory.getService(this.platform.Service.AccessoryInformation)!
@@ -54,10 +54,10 @@ export class LmsModalPlayerAccessory {
       .setCharacteristic(this.platform.Characteristic.Model, 'Squeezebox')
       .setCharacteristic(this.platform.Characteristic.SerialNumber, this.id);
 
-    this.service.setCharacteristic(this.platform.Characteristic.Name, this.name);
-    this.platform.Characteristic.InputSourceType;
+    this.service.setCharacteristic(this.platform.Characteristic.Name, this.playerName);
+    // this.platform.Characteristic.InputSourceType;
 
-    this.service.setCharacteristic(this.platform.Characteristic.InputSourceType, this.platform.Characteristic.InputSourceType.AIRPLAY);
+    this.service.setCharacteristic(this.platform.Characteristic.InputSourceType, 0);
     this.service.getCharacteristic(this.platform.Characteristic.InputSourceType)
       .onSet(this.setInputSource.bind(this))
       .onGet(this.getInputSource.bind(this));
@@ -101,7 +101,7 @@ export class LmsModalPlayerAccessory {
    */
   async getOn(): Promise<CharacteristicValue> {
 
-    this.platform.log.debug(`${this.id} ${this.playerId} ${this.name} ${this.input}`);
+    this.platform.log.debug(`${this.id} ${this.playerId} ${this.playerName} ${this.input}`);
     // this.platform.log.debug(`Power: ${this.platform.players[this.playerId].power}`);
     // this.platform.log.debug(`Input: ${this.platform.players[this.playerId].input}`);
     this.platform.log.debug(`Players: ${JSON.stringify(this.platform.players)}`);
@@ -128,7 +128,7 @@ export class LmsModalPlayerAccessory {
 
   async getInputSource(): Promise<CharacteristicValue> {
     this.platform.log.debug(`Get Characteristic InputSource -> ${this.input}`);
-    return this.input;
+    return this.inputSource;
   }
 
   sleep(ms: number): Promise<void> {
