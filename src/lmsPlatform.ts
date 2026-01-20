@@ -27,7 +27,7 @@ export class LmsHomebridgePlatform implements DynamicPlatformPlugin {
       { name: 'Technics', input: 'CD' },
       { name: 'Squeezebox', input: 'MDTape' },
       { name: 'Projector', input: 'DTVCBL' },
-      { name: 'Wireless', input: 'DVD' }
+      { name: 'Wireless', input: 'DVD' },
     ],
   };
 

@@ -1,4 +1,5 @@
-import { Service, PlatformAccessory, CharacteristicValue } from 'homebridge';
+import { PlatformAccessory, CharacteristicValue } from 'homebridge';
+import { Service } from 'hap-nodejs';
 
 import { LmsHomebridgePlatform } from './lmsPlatform';
 import { SlimServer } from './lms';
@@ -41,16 +42,24 @@ export class LmsModalPlayerAccessory {
     this.name = name;
     this.input = input.toUpperCase();
 
+    // this.service = this.accessory.getService(this.platform.Service.Speaker) || this.accessory.addService(this.platform.Service.Speaker);
+    // this.service = this.accessory.getService(this.platform.Service.Outlet) || this.accessory.addService(this.platform.Service.Outlet);
+    this.service = this.accessory.getService(this.platform.Service.InputSource)
+      || this.accessory.addService(this.platform.Service.InputSource);
+
     // set accessory information
     this.accessory.getService(this.platform.Service.AccessoryInformation)!
       .setCharacteristic(this.platform.Characteristic.Manufacturer, 'Logitech')
       .setCharacteristic(this.platform.Characteristic.Model, 'Squeezebox')
       .setCharacteristic(this.platform.Characteristic.SerialNumber, this.id);
 
-    // this.service = this.accessory.getService(this.platform.Service.Speaker) || this.accessory.addService(this.platform.Service.Speaker);
-    this.service = this.accessory.getService(this.platform.Service.Outlet) || this.accessory.addService(this.platform.Service.Outlet);
-
     this.service.setCharacteristic(this.platform.Characteristic.Name, this.name);
+    this.platform.Characteristic.InputSourceType;
+
+    this.service.setCharacteristic(this.platform.Characteristic.InputSourceType, this.platform.Characteristic.InputSourceType.AIRPLAY);
+    this.service.getCharacteristic(this.platform.Characteristic.InputSourceType)
+      .onSet(this.setInputSource.bind(this))
+      .onGet(this.getInputSource.bind(this));
 
     this.service.getCharacteristic(this.platform.Characteristic.On)
       .onSet(this.setOn.bind(this))
@@ -110,6 +119,15 @@ export class LmsModalPlayerAccessory {
     // if you need to return an error to show the device as "Not Responding" in the Home app:
     // throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
     return this.state.On;
+  }
+
+  async setInputSource(value: CharacteristicValue) {
+    this.platform.log.debug(`Set Characteristic InputSource From ${this.input} -> ${value}`);
+  }
+
+  async getInputSource(): Promise<CharacteristicValue> {
+    this.platform.log.debug(`Get Characteristic InputSource -> ${this.input}`);
+    return this.input;
   }
 
   sleep(ms: number): Promise<void> {
