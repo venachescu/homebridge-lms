@@ -1,5 +1,5 @@
-import { PlatformAccessory, CharacteristicValue } from 'homebridge';
-import { Service } from 'hap-nodejs';
+import { Service, PlatformAccessory, CharacteristicValue } from 'homebridge';
+// import { Service } from 'hap-nodejs';
 
 import { LmsHomebridgePlatform } from './lmsPlatform';
 import { SlimServer } from './lms';
