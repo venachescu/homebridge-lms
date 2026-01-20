@@ -1,5 +1,4 @@
 import { Service, PlatformAccessory, CharacteristicValue } from 'homebridge';
-// import { Service } from 'hap-nodejs';
 
 import { LmsHomebridgePlatform } from './lmsPlatform';
 import { SlimServer } from './lms';
@@ -27,6 +26,7 @@ export class LmsModalPlayerAccessory {
   private server: string;
   private name: string;
   private input: string;
+  private inputSource: number;
 
   constructor(
     private readonly platform: LmsHomebridgePlatform,
@@ -41,6 +41,7 @@ export class LmsModalPlayerAccessory {
     this.server = server;
     this.name = name;
     this.input = input.toUpperCase();
+    this.inputSource = this.platform.Characteristic.InputSourceType.AIRPLAY;
 
     // this.service = this.accessory.getService(this.platform.Service.Speaker) || this.accessory.addService(this.platform.Service.Speaker);
     // this.service = this.accessory.getService(this.platform.Service.Outlet) || this.accessory.addService(this.platform.Service.Outlet);
