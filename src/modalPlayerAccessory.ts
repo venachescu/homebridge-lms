@@ -10,15 +10,18 @@ import { SlimServer } from './lms';
  * Each accessory may expose multiple services of different service types.
  */
 export class LmsModalPlayerAccessory {
-  private service: Service;
+
+  private inputService: Service;
+  private speakerService: Service;
 
   /**
    * These are just used to create a working example
    * You should implement your own code to track the state of your accessory
    */
   private state = {
-    deviceOn: false,
-    On: false,
+    active: false,
+    mute: false,
+    inputSource: 0,
   };
 
   private id: string;
@@ -26,7 +29,6 @@ export class LmsModalPlayerAccessory {
   private playerName: string;
   private server: string;
   private input: string;
-  private inputSource: number;
 
   constructor(
     private readonly platform: LmsHomebridgePlatform,
@@ -41,30 +43,41 @@ export class LmsModalPlayerAccessory {
     this.playerName = playerName || '';
     this.server = server;
     this.input = input || 'INPUT';
-    this.inputSource = (this.platform.Characteristic.InputSourceType.AIRPLAY || 0) as number;
 
     // this.service = this.accessory.getService(this.platform.Service.Speaker) || this.accessory.addService(this.platform.Service.Speaker);
     // this.service = this.accessory.getService(this.platform.Service.Outlet) || this.accessory.addService(this.platform.Service.Outlet);
-    this.service = this.accessory.getService(this.platform.Service.Television)
-      || this.accessory.addService(this.platform.Service.Television);
+
+    this.inputService = this.accessory.getService(this.platform.Service.InputSource)
+      || this.accessory.addService(this.platform.Service.InputSource);
+
+    this.speakerService = this.accessory.getService(this.platform.Service.Speaker)
+      || this.accessory.addService(this.platform.Service.Speaker);
 
     // set accessory information
-    this.accessory.getService(this.platform.Service.AccessoryInformation)!
-      .setCharacteristic(this.platform.Characteristic.Manufacturer, 'Logitech')
-      .setCharacteristic(this.platform.Characteristic.Model, 'Squeezebox')
-      .setCharacteristic(this.platform.Characteristic.SerialNumber, this.id);
+    // this.accessory.getService(this.platform.Service.AccessoryInformation)!
+    //   .setCharacteristic(this.platform.Characteristic.Manufacturer, 'Logitech')
+    //   .setCharacteristic(this.platform.Characteristic.Model, 'Squeezebox')
+    //   .setCharacteristic(this.platform.Characteristic.SerialNumber, this.id);
 
-    this.service.setCharacteristic(this.platform.Characteristic.Name, this.playerName);
-    // this.platform.Characteristic.InputSourceType;
+    this.inputService.setCharacteristic(this.platform.Characteristic.ConfiguredName, this.playerName);
+    this.inputService.setCharacteristic(this.platform.Characteristic.Name, this.playerName);
+    this.inputService.setCharacteristic(this.platform.Characteristic.IsConfigured, true);
+    this.inputService.setCharacteristic(this.platform.Characteristic.CurrentVisibilityState, true);
+    this.inputService.setCharacteristic(this.platform.Characteristic.InputDeviceType,
+      this.platform.Characteristic.InputDeviceType.AUDIO_SYSTEM);
 
-    this.service.setCharacteristic(this.platform.Characteristic.InputSourceType, 0);
-    this.service.getCharacteristic(this.platform.Characteristic.InputSourceType)
+    this.inputService.setCharacteristic(this.platform.Characteristic.InputSourceType, 0);
+    this.inputService.getCharacteristic(this.platform.Characteristic.InputSourceType)
       .onSet(this.setInputSource.bind(this))
       .onGet(this.getInputSource.bind(this));
 
-    this.service.getCharacteristic(this.platform.Characteristic.On)
+    this.speakerService.getCharacteristic(this.platform.Characteristic.Active)
       .onSet(this.setOn.bind(this))
       .onGet(this.getOn.bind(this));
+
+    this.speakerService.getCharacteristic(this.platform.Characteristic.Mute)
+      .onSet(this.setMute.bind(this))
+      .onGet(this.getMute.bind(this));
   }
 
   /**
@@ -75,7 +88,7 @@ export class LmsModalPlayerAccessory {
 
     // const prevDeviceState = Boolean(this.state.deviceOn);
     const prevDeviceState = Boolean(this.platform.players[this.playerId].power);
-    this.state.On = value as boolean;
+    this.state.active = value as boolean;
 
     const client = new SlimServer(this.server);
     const power = await client.query(this.playerId, 'power', `${Number(value)}`);
@@ -110,16 +123,25 @@ export class LmsModalPlayerAccessory {
     const status = await client.query(this.playerId, 'status');
     this.platform.players[this.playerId].power = Number(status.power);
     // this.state.deviceOn = Boolean(Number(status.power));
-    this.state.On = this.platform.players[this.playerId].power && (this.platform.players[this.playerId].input === this.input);
+    this.state.active = this.platform.players[this.playerId].power;
 
     this.platform.log.debug('Power state', this.platform.players[this.playerId].power);
     this.platform.log.debug('Input states', (this.platform.players[this.playerId].input === this.input));
     // this.platform.log.debug('Power state', Boolean(Number(status.power)));
     // this.platform.log.debug('Input states', (this.platform.inputStates[this.playerId] === this.input));
-    this.platform.log.debug('Get Characteristic On ->', this.state.On);
+    this.platform.log.debug('Get Characteristic On ->', this.state.active);
     // if you need to return an error to show the device as "Not Responding" in the Home app:
     // throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
-    return this.state.On;
+    return this.state.active;
+  }
+
+  async setMute(value: CharacteristicValue) {
+    this.platform.log.debug(`Set Characteristic Mute From ${value}`);
+  }
+
+  async getMute(): Promise<CharacteristicValue> {
+    this.platform.log.debug(`Get Characteristic Mute -> ${this.state.mute}`);
+    return this.state.mute;
   }
 
   async setInputSource(value: CharacteristicValue) {
@@ -128,7 +150,7 @@ export class LmsModalPlayerAccessory {
 
   async getInputSource(): Promise<CharacteristicValue> {
     this.platform.log.debug(`Get Characteristic InputSource -> ${this.input}`);
-    return this.inputSource;
+    return this.state.inputSource;
   }
 
   sleep(ms: number): Promise<void> {
